@@ -1,3 +1,4 @@
+import random
 from tkinter import *
 from tkinter import ttk
 
@@ -5,61 +6,75 @@ from tkinter import ttk
 
 root = Tk()
 root.geometry("1000x800")
-frame = Frame(root)
+frame = Frame(root, width=1000, height=50)
+frame.pack(expand=True, fill=BOTH)
+difficultyframe = Frame(frame, bg="white", width=1000, height=50)
+difficultyframe.pack(expand=True, fill=BOTH)
 
-menuframe = Frame(root, bg="gray", width=1000, height=20)
+# make 4 difficulty buttons
+
+beginner = ttk.Button(difficultyframe, text="Beginner").grid(column=1, row=1)
+
+intermediate = ttk.Button(
+    difficultyframe, text="Intermediate").grid(column=3, row=1)
+
+Expert = ttk.Button(difficultyframe, text="Expert").grid(column=5, row=1)
+
+custom = ttk.Button(difficultyframe, text="Custom").grid(column=7, row=1)
+
+difficultyframe.grid_columnconfigure(0, weight=4)
+difficultyframe.grid_columnconfigure(2, weight=1)
+difficultyframe.grid_columnconfigure(4, weight=1)
+difficultyframe.grid_columnconfigure(6, weight=1)
+difficultyframe.grid_columnconfigure(8, weight=12)
+
+
+difficultyframe.grid_rowconfigure(0, weight=1)
+difficultyframe.grid_rowconfigure(2, weight=1)
+
+# set up mine and time labels as well as reset button
+
+
+menuframe = Frame(frame, bg="gray", width=800, height=20)
 menuframe.pack(expand=True, fill=BOTH)
 
-mineCount = Label(menuframe, text="#").grid(column=1, row=1)
+mineCount = Label(menuframe, text="# # #").grid(column=1, row=1)
 
-beginner = Button(menuframe, text="Beginner").grid(column=3, row=1)
+restart = Button(menuframe, text="restart").grid(column=3, row=1)
 
-intermediate = Button(menuframe, text="Intermediate").grid(column=4, row=1)
-
-expert = Button(menuframe, text="Expert").grid(column=5, row=1)
-
-custom = Button(menuframe, text="Custom").grid(column=6, row=1)
-
-restart = Button(menuframe, text="restart").grid(column=8, row=1)
-
-timeCount = Label(menuframe, text="#").grid(column=10, row=1)
+timeCount = Label(menuframe, text="# # #").grid(column=5, row=1)
 
 menuframe.grid_columnconfigure(0, weight=1)
-menuframe.grid_columnconfigure(2, weight=4)
-menuframe.grid_columnconfigure(7, weight=2)
-menuframe.grid_columnconfigure(9, weight=2)
-menuframe.grid_columnconfigure(11, weight=1)
+menuframe.grid_columnconfigure(2, weight=10)
+menuframe.grid_columnconfigure(4, weight=10)
+menuframe.grid_columnconfigure(6, weight=1)
+
 
 menuframe.grid_rowconfigure(0, weight=1)
 menuframe.grid_rowconfigure(2, weight=1)
 
+# game frame should hold all mines
 
-# menu frame should hold mine #, difficulty selection, restart button, and clock
 
-
-gameframe = Frame(root, bg="light gray", width=1000,
-                  height=650, highlightthickness=20)
+gameframe = Frame(frame, bg="light gray", width=1000,
+                  height=600, highlightthickness=20)
 gameframe.config(highlightbackground="gray")
 
 
 gameframe.pack(expand=True, fill=BOTH)
 
-height = 25
-width = 25
-
 gameframe.grid_columnconfigure(0, weight=1)
 gameframe.grid_rowconfigure(0, weight=1)
 
-gameframe.grid_columnconfigure(width+2, weight=1)
-gameframe.grid_rowconfigure(height+2, weight=1)
-
-for i in range(height):
-    for j in range(width):
-        button = Button(gameframe, width=2, height=1).grid(
-            row=i+1, column=j+1)
-
-# game frame should hold all mines
+gameframe.grid_rowconfigure(0, weight=1)
+gameframe.grid_rowconfigure(2, weight=1)
 
 
+# initialize the game with rows columns and mines
+
+
+# run the program
 root.title("Game")
 root.mainloop()
+minesweap = Game(10, 10, 10)
+minesweap.placeMines()
