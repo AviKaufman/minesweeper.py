@@ -63,3 +63,6 @@ for i in range(height):
 
 root.title("Game")
 root.mainloop()
+
+
+# comments are for my own reference, not for the code
