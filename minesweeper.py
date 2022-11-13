@@ -10,7 +10,7 @@ from tkinter import messagebox
 class Globals ():
     height = 16
     width = 30
-    mines = 10
+    mines = 99
     game_frame = None
     board = None
 
@@ -28,16 +28,113 @@ class GameBoard(Frame):
         self.width = width
         self.mines = mines
 
+        #create a list of mine values
+
+        mine_grid = [[0]*width for i in [0]*height]
+        while mines > 0:
+            i = random.randint(0,height-1)
+            j = random.randint(0,width-1)
+            if mine_grid[i][j] == 0:
+                mine_grid[i][j] = 1
+                mines -= 1
+
+        #create the board
+
         self.tiles = {}
 
         for i in range(height):
             for j in range(width):
-                self.tiles[i,j] = Tile(self.game,i,j,NONE)
+                if mine_grid[i][j] == 1:
+                    self.tiles[i,j] = Tile(self.game,i,j,True,NONE)
+                else:
+                    mine_neighbors = 0     #counting nearby mines if Tile in creation is not a mine
+                    if i - 1 >= 0:
+                        if mine_grid[i-1][j] == 1:
+                            mine_neighbors += 1
+                    if i - 1 >= 0 and j - 1 >= 0:
+                        if mine_grid[i-1][j-1] == 1:
+                            mine_neighbors += 1
+                    if i - 1 >= 0 and j + 1 < width:
+                        if mine_grid[i-1][j+1] == 1:
+                            mine_neighbors += 1
+                    if j - 1 >= 0:
+                        if mine_grid[i][j-1] == 1:
+                            mine_neighbors += 1
+                    if j + 1 < width:
+                        if mine_grid[i][j+1] == 1:
+                            mine_neighbors += 1
+                    if i + 1 < height:
+                        if mine_grid[i+1][j] == 1:
+                            mine_neighbors += 1
+                    if i + 1 < height and j - 1 >= 0:
+                        if mine_grid[i+1][j-1] == 1:
+                            mine_neighbors += 1
+                    if i + 1 < height and j + 1 < width:
+                        if mine_grid[i+1][j+1] == 1:
+                            mine_neighbors += 1
+                    
+                    self.tiles[i, j] = Tile(self.game, i, j, False, mine_neighbors)
+
+    #update the board when game mode is changed
 
     def update_board(self,master,height,width,mines):
+        self.game.destroy()
+        Frame.__init__(self,master)
+        self.master = master
+        master.configure(bg="gray")
+        master.pack(expand = True,fill = BOTH)
+        self.game = Frame(master, bg="white",width = 800, height = 630)
+        self.game.pack(expand=True)
+        self.height = height
+        self.width = width
+        self.mines = mines
+        #create a list of mine values
+
+        mine_grid = [[0]*width for i in [0]*height]
+        while mines > 0:
+            i = random.randint(0,height-1)
+            j = random.randint(0,width-1)
+            if mine_grid[i][j] == 0:
+                mine_grid[i][j] = 1
+                mines -= 1
+
+        #create the board
+
+        self.tiles = {}
+
+
         for i in range(height):
             for j in range(width):
-                self.tiles[i,j] = Tile(self.game,i,j,NONE)
+                if mine_grid[i][j] == 1:
+                    self.tiles[i,j] = Tile(self.game,i,j,True,NONE)
+                else:
+                    mine_neighbors = 0     #counting nearby mines if Tile in creation is not a mine
+                    if i - 1 >= 0:
+                        if mine_grid[i-1][j] == 1:
+                            mine_neighbors += 1
+                    if i - 1 >= 0 and j - 1 >= 0:
+                        if mine_grid[i-1][j-1] == 1:
+                            mine_neighbors += 1
+                    if i - 1 >= 0 and j + 1 < width:
+                        if mine_grid[i-1][j+1] == 1:
+                            mine_neighbors += 1
+                    if j - 1 >= 0:
+                        if mine_grid[i][j-1] == 1:
+                            mine_neighbors += 1
+                    if j + 1 < width:
+                        if mine_grid[i][j+1] == 1:
+                            mine_neighbors += 1
+                    if i + 1 < height:
+                        if mine_grid[i+1][j] == 1:
+                            mine_neighbors += 1
+                    if i + 1 < height and j - 1 >= 0:
+                        if mine_grid[i+1][j-1] == 1:
+                            mine_neighbors += 1
+                    if i + 1 < height and j + 1 < width:
+                        if mine_grid[i+1][j+1] == 1:
+                            mine_neighbors += 1
+                    
+                    self.tiles[i, j] = Tile(self.game, i, j, False, mine_neighbors)
         
 
 
@@ -47,7 +144,128 @@ class Tile(Label):
         self.grid(row=i,column=j)
         self.row = i
         self.column = j
+        self.mine = mine
+        self.mine_neighbors = mine_neighbors
+        self.revealed = False
+        self.flagged = False
+        self.flagged_neighbors = 0
+        self.bind("<Button-1>",self.reveal)
+        self.bind("<Button-3>",self.flag)
+
+    def reveal(self,event=None):
+        if self.mine == True:
+            self.configure(bg="black")
+            self.revealed = True
+            messagebox.showinfo("Game Over","You Lose")
+        else:
+            if self.mine_neighbors == 0:
+                self.configure(relief=SUNKEN,bg="light gray",text=" ")
+                self.revealed = True
+                self.reveal_neighbors(self.row,self.column)
+            
+            #counting nearby mines if Tile in creation is not a mine
+            
+            
+            self.flagged_neighbors = 0
+            if self.row - 1 >= 0:
+                if (Globals.board.tiles[self.row-1,self.column].flagged == True):
+                    self.flagged_neighbors +=1
+            if self.row - 1 >= 0 and self.column - 1 >= 0:        
+                if (Globals.board.tiles[self.row-1,self.column-1].flagged == True):
+                    self.flagged_neighbors +=1
+            if self.row - 1 >= 0 and self.column + 1 < Globals.board.width:
+                if (Globals.board.tiles[self.row-1,self.column+1].flagged == True):
+                    self.flagged_neighbors +=1
+            if self.column - 1 >= 0:
+                if (Globals.board.tiles[self.row,self.column-1].flagged == True):
+                    self.flagged_neighbors +=1
+            if self.column + 1 < Globals.board.width:
+                if (Globals.board.tiles[self.row,self.column+1].flagged == True):
+                    self.flagged_neighbors +=1
+            if self.row + 1 < Globals.board.height:
+                if (Globals.board.tiles[self.row+1,self.column].flagged == True):
+                    self.flagged_neighbors +=1
+            if self.row + 1 < Globals.board.height and self.column - 1 >= 0:
+                if (Globals.board.tiles[self.row+1,self.column-1].flagged == True):
+                    self.flagged_neighbors +=1
+            if self.row + 1 < Globals.board.height and self.column + 1 < Globals.board.width:
+                if (Globals.board.tiles[self.row+1,self.column+1].flagged == True):
+                    self.flagged_neighbors +=1
+            
+            if self.flagged_neighbors == self.mine_neighbors and self.revealed == True:
+                self.reveal_neighbors(self.row,self.column)
+
+
+            #reveal value of tiles
+
+            else:
+                if self.mine_neighbors == 1:
+                    self.configure(relief=SUNKEN, bg="light gray",text=self.mine_neighbors,fg="blue")
+                    self.revealed = True
+                if self.mine_neighbors == 2:
+                    self.configure(relief=SUNKEN,bg="light gray",text=self.mine_neighbors,fg="green")
+                    self.revealed = True
+                if self.mine_neighbors == 3:
+                    self.configure(relief=SUNKEN,bg="light gray",text=self.mine_neighbors,fg="red")
+                    self.revealed = True
+                if self.mine_neighbors == 4:
+                    self.configure(relief=SUNKEN,bg="light gray",text=self.mine_neighbors,fg="purple")
+                    self.revealed = True
+                if self.mine_neighbors == 5:
+                    self.configure(relief=SUNKEN,bg="light gray",text=self.mine_neighbors,fg="maroon")
+                    self.revealed = True
+                if self.mine_neighbors == 6:
+                    self.configure(relief=SUNKEN,bg="light gray",text=self.mine_neighbors,fg="teal")
+                    self.revealed = True
+                if self.mine_neighbors == 7:
+                    self.configure(relief=SUNKEN,bg="light gray",text=self.mine_neighbors,fg="Black")
+                    self.revealed = True
+                if self.mine_neighbors == 8:    
+                    self.configure(relief=SUNKEN,bg="light gray",text=self.mine_neighbors,fg="gray")
+                    self.revealed = True    
+               
+
+    def flag(self,event):
+        if self.flagged == False and self.revealed == False:
+            self.configure(bg="red", text="F")
+            self.flagged = True
+        else:
+            self.configure(bg="white",text="")
+            self.flagged = False
     
+    def reveal_neighbors(self,row,column):
+        if row - 1 >= 0:
+            if Globals.board.tiles[row-1,column].revealed == False:
+                if Globals.board.tiles[row-1,column].flagged == False:
+                    Globals.board.tiles[row-1,column].reveal()
+        if row - 1 >= 0 and column - 1 >= 0:
+            if Globals.board.tiles[row-1,column-1].revealed == False:
+                if Globals.board.tiles[row-1,column-1].flagged == False:
+                    Globals.board.tiles[row-1,column-1].reveal()
+        if row - 1 >= 0 and column + 1 < Globals.width:
+            if Globals.board.tiles[row-1,column+1].revealed == False:
+                if Globals.board.tiles[row-1,column+1].flagged == False:
+                    Globals.board.tiles[row-1,column+1].reveal()
+        if column - 1 >= 0:
+            if Globals.board.tiles[row,column-1].revealed == False:
+                if Globals.board.tiles[row,column-1].flagged == False:
+                    Globals.board.tiles[row,column-1].reveal()
+        if column + 1 < Globals.width:
+            if Globals.board.tiles[row,column+1].revealed == False:
+                if Globals.board.tiles[row,column+1].flagged == False:
+                    Globals.board.tiles[row,column+1].reveal()
+        if row + 1 < Globals.height:
+            if Globals.board.tiles[row+1,column].revealed == False:
+                if Globals.board.tiles[row+1,column].flagged == False:
+                    Globals.board.tiles[row+1,column].reveal()
+        if row + 1 < Globals.height and column - 1 >= 0:
+            if Globals.board.tiles[row+1,column-1].revealed == False:
+                if Globals.board.tiles[row+1,column-1].flagged == False:
+                    Globals.board.tiles[row+1,column-1].reveal()
+        if row + 1 < Globals.height and column + 1 < Globals.width:
+            if Globals.board.tiles[row+1,column+1].revealed == False:
+                if Globals.board.tiles[row+1,column+1].flagged == False:
+                    Globals.board.tiles[row+1,column+1].reveal()
     
 
 
@@ -56,6 +274,8 @@ def beginner_clicked():
     Globals.width = 10
     Globals.mines = 10
     Globals.board.update_board(Globals.game_frame,Globals.height,Globals.width,Globals.mines)
+    
+    
 
     
     
@@ -65,6 +285,9 @@ def intermediate_clicked():
     Globals.width = 16
     Globals.mines = 40
     Globals.board.update_board(Globals.game_frame,Globals.height,Globals.width,Globals.mines)
+    
+    
+    
 
     
     
@@ -72,15 +295,23 @@ def intermediate_clicked():
 def expert_clicked():
     Globals.height = 16
     Globals.width = 30
+    Globals.mines = 99
     Globals.board.update_board(Globals.game_frame,Globals.height,Globals.width,Globals.mines)
+    
 
     
 
 def custom_clicked():
-    Globals.height = 10
-    Globals.width = 10
-    Globals.mines = 10
+    Globals.height = 30
+    Globals.width = 30
+    Globals.mines = 150
     Globals.board.update_board(Globals.game_frame,Globals.height,Globals.width,Globals.mines)
+
+def restart_clicked():
+    Globals.board.update_board(Globals.game_frame,Globals.height,Globals.width,Globals.mines)
+
+    
+    
 
     
 
@@ -132,7 +363,7 @@ def play():
 
     control_frame.columnconfigure(2, weight=4)
 
-    restart = Button(control_frame, text="Restart").grid(column=3, row=0)
+    restart = Button(control_frame, text="Restart", command=restart_clicked).grid(column=3, row=0)
 
     control_frame.columnconfigure(4, weight=4)
 
@@ -148,3 +379,4 @@ def play():
 
 
 play()
+
