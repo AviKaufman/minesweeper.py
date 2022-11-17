@@ -1,6 +1,9 @@
 import random
+import sched
+import time
 from tkinter import *
 from tkinter import messagebox
+from tkinter.simpledialog import askstring
 
 #I feel bad about this but I'm going to make height width and mines globals to connect 
 # between the button clicked and play functions I should do this with classes but I'm too lazy
@@ -11,10 +14,14 @@ class Globals ():
     height = 16
     width = 30
     mines = 99
+    mine_count = 99
     game_frame = None
     board = None
     x = 0
     y = 0
+    control_frame = None
+    gamestarted = False
+    time = 000
 
 
 
@@ -84,6 +91,10 @@ class GameBoard(Frame):
     #update the board when game mode is changed
 
     def update_board(self,master,height,width,mines):
+        Globals.control_frame.grid_slaves(column = 5,row = 0)[0].configure(text ="000")
+        Globals.gamestarted = False
+        Globals.control_frame.grid_slaves(column = 1,row =0)[0].configure(text = "{}".format(Globals.mines))
+        Globals.mine_count = Globals.mines
         self.game.destroy()
         Frame.__init__(self,master)
         self.master = master
@@ -147,7 +158,7 @@ class GameBoard(Frame):
         self.gamewon = False
         for tile in self.tiles:
             if self.tiles[tile].mine:
-                self.tiles[tile].config(bg='black')
+                self.tiles[tile].config(relief = SUNKEN, bg='black')
 
     def win(self):
         self.gamewon = True
@@ -181,6 +192,7 @@ class Tile(Label):
 
 
     def reveal(self,event=None):
+        self.startClock()
         if Globals.board.gamewon == None:
             if self.flagged == False:
                 if self.mine == True:
@@ -263,28 +275,43 @@ class Tile(Label):
                             self.revealed = True  
                             self.checkWin()
 
-               
+    def startClock(self):
+        Globals.time += 1
+        Globals.control_frame.grid_slaves(column = 5,row = 0)[0].configure(text = "{}".format(Globals.time))
+        Globals.gamestarted = True
+
+
     def flag_coordinates(self,event,i,j):
         Globals.y = i
         Globals.x = j
 
 
     def flag_place(self,event):
-        if Globals.board.tiles[Globals.y,Globals.x].flagged == False and Globals.board.tiles[Globals.y,Globals.x].revealed == False:
-            Globals.board.tiles[Globals.y,Globals.x].configure(bg="red", text="F")
-            Globals.board.tiles[Globals.y,Globals.x].flagged = True
-        elif Globals.board.tiles[Globals.y,Globals.x].revealed == False:
-            Globals.board.tiles[Globals.y,Globals.x].configure(bg="white",text="")
-            Globals.board.tiles[Globals.y,Globals.x].flagged = False
+        if Globals.board.gamewon == None:
+            if Globals.board.tiles[Globals.y,Globals.x].flagged == False and Globals.board.tiles[Globals.y,Globals.x].revealed == False:
+                Globals.board.tiles[Globals.y,Globals.x].configure(bg="red", text="F")
+                Globals.board.tiles[Globals.y,Globals.x].flagged = True
+                Globals.mine_count -= 1
+                Globals.control_frame.grid_slaves(column = 1,row = 0)[0].configure(text = "{}".format(Globals.mine_count))
+            elif Globals.board.tiles[Globals.y,Globals.x].revealed == False:
+                Globals.board.tiles[Globals.y,Globals.x].configure(bg="white",text="")
+                Globals.board.tiles[Globals.y,Globals.x].flagged = False
+                Globals.mine_count += 1
+                Globals.control_frame.grid_slaves(column = 1,row = 0)[0].configure(text = "{}".format(Globals.mine_count))
 
 
     def flag(self,event):
-        if self.flagged == False and self.revealed == False:
-            self.configure(bg="red", text="F")
-            self.flagged = True
-        elif self.revealed == False:
-            self.configure(bg="white",text="")
-            self.flagged = False
+        if Globals.board.gamewon == None:
+            if self.flagged == False and self.revealed == False:
+                self.configure(bg="red", text="F")
+                self.flagged = True
+                Globals.mine_count -= 1
+                Globals.control_frame.grid_slaves(column = 1,row = 0)[0].configure(text = "{}".format(Globals.mine_count))
+            elif self.revealed == False:
+                self.configure(bg="white",text="")
+                self.flagged = False
+                Globals.mine_count += 1
+                Globals.control_frame.grid_slaves(column = 1,row = 0)[0].configure(text = "{}".format(Globals.mine_count))
     
     def reveal_neighbors(self,row,column):
         if row - 1 >= 0:
@@ -368,6 +395,7 @@ def expert_clicked():
     
 
 def custom_clicked():
+    custom = askstring("Custom","Enter Height, Width, and Mines:")
     Globals.height = 30
     Globals.width = 30
     Globals.mines = 150
@@ -393,8 +421,8 @@ def play():
     difficulty_frame = Frame(root, bg="gray", pady=20)
     difficulty_frame.pack(fill=X)
 
-    control_frame = Frame(root, bg="gray", pady=20)
-    control_frame.pack(fill=X)
+    Globals.control_frame = Frame(root, bg="gray", pady=20)
+    Globals.control_frame.pack(fill=X)
 
     gray_frame = Frame(root, bg="gray")
     gray_frame.pack(expand=True, fill=BOTH)
@@ -425,19 +453,19 @@ def play():
 
     # make mine count restart button and timer
 
-    control_frame.columnconfigure(0, weight=1)
+    Globals.control_frame.columnconfigure(0, weight=1)
 
-    mine_num = Label(control_frame, text="099").grid(column=1, row=0)
+    mine_num = Label(Globals.control_frame, text="099").grid(column=1, row=0)
 
-    control_frame.columnconfigure(2, weight=4)
+    Globals.control_frame.columnconfigure(2, weight=4)
 
-    restart = Button(control_frame, text="Restart", command=restart_clicked).grid(column=3, row=0)
+    restart = Button(Globals.control_frame, text="Restart", command=restart_clicked).grid(column=3, row=0)
 
-    control_frame.columnconfigure(4, weight=4)
+    Globals.control_frame.columnconfigure(4, weight=4)
 
-    timer = Label(control_frame, text="000").grid(column=5, row=0)
+    timer = Label(Globals.control_frame, text="000").grid(column=5, row=0)
 
-    control_frame.columnconfigure(6, weight=1)
+    Globals.control_frame.columnconfigure(6, weight=1)
 
     Globals.board = GameBoard(Globals.game_frame,Globals.height,Globals.width,Globals.mines)
     
