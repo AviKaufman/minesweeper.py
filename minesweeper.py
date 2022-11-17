@@ -4,6 +4,7 @@ import time
 from tkinter import *
 from tkinter import messagebox
 from tkinter.simpledialog import askstring
+from tkinter.ttk import Combobox
 
 #I feel bad about this but I'm going to make height width and mines globals to connect 
 # between the button clicked and play functions I should do this with classes but I'm too lazy
@@ -15,6 +16,7 @@ class Globals ():
     width = 30
     mines = 99
     mine_count = 99
+    difficulty_frame = None
     game_frame = None
     board = None
     x = 0
@@ -23,6 +25,7 @@ class Globals ():
     time = 000
     game_started = False
     stop = True
+    zoom = 20
 
 
 
@@ -179,7 +182,8 @@ class GameBoard(Frame):
 
 class Tile(Label):
     def __init__(self,master,i, j, mine, mine_neighbors=NONE):
-        Label.__init__(self,master,width=2,relief=RAISED)
+        Label.__init__(self,master,width=2, height = 1, relief=RAISED, justify=CENTER)
+        Globals.game_frame.option_add("*Font", "Helvetica {} bold".format(Globals.zoom))
         self.grid(row=i,column=j)
         self.row = i
         self.column = j
@@ -424,6 +428,21 @@ def restart_clicked():
     Globals.board.gamewon = None
     Globals.board.update_board(Globals.game_frame,Globals.height,Globals.width,Globals.mines)
 
+def zoom_clicked(self):
+    text = Globals.difficulty_frame.grid_slaves(column = 9, row = 0)[0].get()
+    if text == "1x":
+        Globals.zoom = 10
+    elif text == "2x":
+        Globals.zoom = 15
+    elif text == "3x":
+        Globals.zoom = 20
+    elif text == "4x":
+        Globals.zoom = 25
+    elif text == "5x":
+        Globals.zoom = 30
+    Globals.board.update_board(Globals.game_frame,Globals.height,Globals.width,Globals.mines)
+    Globals.board.update_board(Globals.game_frame,Globals.height,Globals.width,Globals.mines)
+
     
     
 
@@ -436,8 +455,8 @@ def play():
     root.geometry("1000x800")
     root.configure(background="blue")
 
-    difficulty_frame = Frame(root, bg="gray", pady=20)
-    difficulty_frame.pack(fill=X)
+    Globals.difficulty_frame = Frame(root, bg="gray", pady=20)
+    Globals.difficulty_frame.pack(fill=X)
 
     Globals.control_frame = Frame(root, bg="gray", pady=20)
     Globals.control_frame.pack(fill=X)
@@ -450,38 +469,45 @@ def play():
 
     # make 4 difficulty buttons
 
-    difficulty_frame.columnconfigure(0, weight=1)
+    Globals.difficulty_frame.columnconfigure(0, weight=1)
 
-    beginner = Button(difficulty_frame, text="beginner", command = beginner_clicked).grid(row=0, column=1)
+    beginner = Button(Globals.difficulty_frame, text="beginner", font= "Helvetica 8 bold", command = beginner_clicked).grid(row=0, column=1)
 
-    difficulty_frame.columnconfigure(2, weight=1)
+    Globals.difficulty_frame.columnconfigure(2, weight=1)
 
     intermediate = Button(
-        difficulty_frame, text="intermediate", command=intermediate_clicked).grid(row=0, column=3)
+        Globals.difficulty_frame, text="intermediate", font= "Helvetica 8 bold", command=intermediate_clicked).grid(row=0, column=3)
 
-    difficulty_frame.columnconfigure(4, weight=1)
+    Globals.difficulty_frame.columnconfigure(4, weight=1)
 
-    expert = Button(difficulty_frame, text="expert", command=expert_clicked).grid(row=0, column=5)
+    expert = Button(Globals.difficulty_frame, text="expert", font= "Helvetica 8 bold",  command=expert_clicked).grid(row=0, column=5)
 
-    difficulty_frame.columnconfigure(6, weight=1)
+    Globals.difficulty_frame.columnconfigure(6, weight=1)
 
-    custom = Button(difficulty_frame, text="custom", command=custom_clicked).grid(row=0, column=7)
+    custom = Button(Globals.difficulty_frame, text="custom",font= "Helvetica 8 bold", command=custom_clicked).grid(row=0, column=7)
 
-    difficulty_frame.columnconfigure(8, weight=6)
+    Globals.difficulty_frame.columnconfigure(8, weight=3)
+
+    zoom = Combobox(Globals.difficulty_frame, values=["1x", "2x", "3x","4x","5x"], font= "Helvetica 12 bold")
+    zoom.set("zoom")
+    zoom.bind('<<ComboboxSelected>>', zoom_clicked)
+    zoom.grid(row=0, column=9)
+    
+    Globals.difficulty_frame.columnconfigure(10, weight=3)
 
     # make mine count restart button and timer
 
     Globals.control_frame.columnconfigure(0, weight=1)
 
-    mine_num = Label(Globals.control_frame, text="099").grid(column=1, row=0)
+    mine_num = Label(Globals.control_frame, text="099", font= "Helvetica 15 bold").grid(column=1, row=0)
 
     Globals.control_frame.columnconfigure(2, weight=4)
 
-    restart = Button(Globals.control_frame, text="Restart", command=restart_clicked).grid(column=3, row=0)
+    restart = Button(Globals.control_frame, text="Restart", font= "Helvetica 8 bold", command=restart_clicked).grid(column=3, row=0)
 
     Globals.control_frame.columnconfigure(4, weight=4)
 
-    timer = Label(Globals.control_frame, text="000").grid(column=5, row=0)
+    timer = Label(Globals.control_frame, text="000", font= "Helvetica 15 bold").grid(column=5, row=0)
 
     Globals.control_frame.columnconfigure(6, weight=1)
 
