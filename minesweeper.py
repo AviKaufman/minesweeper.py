@@ -512,6 +512,7 @@ def play():
     Globals.control_frame.columnconfigure(6, weight=1)
 
     Globals.board = GameBoard(Globals.game_frame,Globals.height,Globals.width,Globals.mines)
+    Globals.board.update_board(Globals.game_frame,Globals.height,Globals.width,Globals.mines)
     
 
     root.mainloop()
