@@ -471,20 +471,20 @@ def play():
 
     Globals.difficulty_frame.columnconfigure(0, weight=1)
 
-    beginner = Button(Globals.difficulty_frame, text="beginner", font= "Helvetica 8 bold", command = beginner_clicked).grid(row=0, column=1)
+    beginner = Button(Globals.difficulty_frame, text="beginner", font= "Helvetica 10 bold", command = beginner_clicked).grid(row=0, column=1)
 
     Globals.difficulty_frame.columnconfigure(2, weight=1)
 
     intermediate = Button(
-        Globals.difficulty_frame, text="intermediate", font= "Helvetica 8 bold", command=intermediate_clicked).grid(row=0, column=3)
+        Globals.difficulty_frame, text="intermediate", font= "Helvetica 10 bold", command=intermediate_clicked).grid(row=0, column=3)
 
     Globals.difficulty_frame.columnconfigure(4, weight=1)
 
-    expert = Button(Globals.difficulty_frame, text="expert", font= "Helvetica 8 bold",  command=expert_clicked).grid(row=0, column=5)
+    expert = Button(Globals.difficulty_frame, text="expert", font= "Helvetica 10 bold",  command=expert_clicked).grid(row=0, column=5)
 
     Globals.difficulty_frame.columnconfigure(6, weight=1)
 
-    custom = Button(Globals.difficulty_frame, text="custom",font= "Helvetica 8 bold", command=custom_clicked).grid(row=0, column=7)
+    custom = Button(Globals.difficulty_frame, text="custom",font= "Helvetica 10 bold", command=custom_clicked).grid(row=0, column=7)
 
     Globals.difficulty_frame.columnconfigure(8, weight=3)
 
@@ -503,7 +503,7 @@ def play():
 
     Globals.control_frame.columnconfigure(2, weight=4)
 
-    restart = Button(Globals.control_frame, text="Restart", font= "Helvetica 8 bold", command=restart_clicked).grid(column=3, row=0)
+    restart = Button(Globals.control_frame, text="Restart", font= "Helvetica 10 bold", command=restart_clicked).grid(column=3, row=0)
 
     Globals.control_frame.columnconfigure(4, weight=4)
 
