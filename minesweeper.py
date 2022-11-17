@@ -20,8 +20,9 @@ class Globals ():
     x = 0
     y = 0
     control_frame = None
-    gamestarted = False
     time = 000
+    game_started = False
+    stop = True
 
 
 
@@ -91,8 +92,10 @@ class GameBoard(Frame):
     #update the board when game mode is changed
 
     def update_board(self,master,height,width,mines):
-        Globals.control_frame.grid_slaves(column = 5,row = 0)[0].configure(text ="000")
-        Globals.gamestarted = False
+        Globals.game_started = False
+        Globals.stop = True
+        Globals.time = 000
+        Globals.control_frame.grid_slaves(column = 5,row = 0)[0].configure(text ="{}".format(Globals.time).zfill(3))
         Globals.control_frame.grid_slaves(column = 1,row =0)[0].configure(text = "{}".format(Globals.mines))
         Globals.mine_count = Globals.mines
         self.game.destroy()
@@ -156,11 +159,15 @@ class GameBoard(Frame):
 
     def loss(self):
         self.gamewon = False
+        Globals.stop = True
+        Globals.game_started = False
+        Globals.stop = True
         for tile in self.tiles:
             if self.tiles[tile].mine:
                 self.tiles[tile].config(relief = SUNKEN, bg='black')
 
     def win(self):
+        Globals.stop = True
         self.gamewon = True
         for tile in self.tiles:
             if self.tiles[tile].mine:
@@ -192,7 +199,6 @@ class Tile(Label):
 
 
     def reveal(self,event=None):
-        self.startClock()
         if Globals.board.gamewon == None:
             if self.flagged == False:
                 if self.mine == True:
@@ -204,6 +210,7 @@ class Tile(Label):
                         self.configure(relief=SUNKEN,bg="light gray",text=" ")
                         self.revealed = True
                         self.reveal_neighbors(self.row,self.column)
+                        
                         
                     #counting nearby mines if Tile in creation is not a mine
                     
@@ -236,7 +243,6 @@ class Tile(Label):
                     
                     if self.flagged_neighbors == self.mine_neighbors and self.revealed == True:
                         self.reveal_neighbors(self.row,self.column)
-
 
                     #reveal value of tiles
 
@@ -275,10 +281,16 @@ class Tile(Label):
                             self.revealed = True  
                             self.checkWin()
 
+                        if Globals.game_started == False:
+                            Globals.stop = False
+                            Globals.game_started = True
+                            self.startClock()
+
     def startClock(self):
-        Globals.time += 1
-        Globals.control_frame.grid_slaves(column = 5,row = 0)[0].configure(text = "{}".format(Globals.time))
-        Globals.gamestarted = True
+        if Globals.stop != True:
+            Globals.time += 1
+            Globals.control_frame.grid_slaves(column = 5,row = 0)[0].configure(text = "{}".format(Globals.time).zfill(3))
+            Globals.control_frame.after(1000,self.startClock)
 
 
     def flag_coordinates(self,event,i,j):
@@ -396,9 +408,15 @@ def expert_clicked():
 
 def custom_clicked():
     custom = askstring("Custom","Enter Height, Width, and Mines:")
-    Globals.height = 30
-    Globals.width = 30
-    Globals.mines = 150
+    custom = custom.split()
+
+    Globals.height = int(custom[0])
+    Globals.width = int(custom[1])
+    Globals.mines = int(custom[2])
+    
+    # Globals.height = 30
+    # Globals.width = 30
+    # Globals.mines = 150
     Globals.board.gamewon = None
     Globals.board.update_board(Globals.game_frame,Globals.height,Globals.width,Globals.mines)
 
