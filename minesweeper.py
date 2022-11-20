@@ -6,6 +6,8 @@ from tkinter import messagebox
 from tkinter.simpledialog import askstring
 from tkinter.ttk import Combobox
 
+from PIL import Image, ImageTk
+
 #I feel bad about this but I'm going to make height width and mines globals to connect 
 # between the button clicked and play functions I should do this with classes but I'm too lazy
 # to fix that
@@ -26,6 +28,9 @@ class Globals ():
     game_started = False
     stop = True
     zoom = 20
+    
+
+    
 
 
 
@@ -43,6 +48,9 @@ class GameBoard(Frame):
         self.mines = mines
 
         self.gamewon = None
+
+        
+        
 
         #create a list of mine values
 
@@ -198,7 +206,10 @@ class Tile(Label):
         self.bind("<Button-2>",self.flag)
         self.bind("<Enter>",lambda event:self.flag_coordinates(event,self.row,self.column))
         self.bind("<space>",lambda event:self.flag_place(event))
-        
+
+        flag = Image.open('flag.png')    #creating and storing flag and bomb images
+        flag = flag.resize((30,30), Image.Resampling.LANCZOS)
+        self.flag = ImageTk.PhotoImage(flag)
         
 
 
@@ -305,12 +316,12 @@ class Tile(Label):
     def flag_place(self,event):
         if Globals.board.gamewon == None:
             if Globals.board.tiles[Globals.y,Globals.x].flagged == False and Globals.board.tiles[Globals.y,Globals.x].revealed == False:
-                Globals.board.tiles[Globals.y,Globals.x].configure(bg="red", text="F")
+                Globals.board.tiles[Globals.y,Globals.x].configure(image = self.flag,padx = 12, pady = 12)
                 Globals.board.tiles[Globals.y,Globals.x].flagged = True
                 Globals.mine_count -= 1
                 Globals.control_frame.grid_slaves(column = 1,row = 0)[0].configure(text = "{}".format(Globals.mine_count))
             elif Globals.board.tiles[Globals.y,Globals.x].revealed == False:
-                Globals.board.tiles[Globals.y,Globals.x].configure(bg="white",text="")
+                Globals.board.tiles[Globals.y,Globals.x].configure(image = "",padx = 1,pady = 1)
                 Globals.board.tiles[Globals.y,Globals.x].flagged = False
                 Globals.mine_count += 1
                 Globals.control_frame.grid_slaves(column = 1,row = 0)[0].configure(text = "{}".format(Globals.mine_count))
