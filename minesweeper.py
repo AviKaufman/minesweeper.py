@@ -6,15 +6,11 @@ from tkinter import messagebox
 from tkinter.simpledialog import askstring
 from tkinter.ttk import Combobox
 
-<<<<<<< HEAD
 from PIL import Image, ImageTk
 
 #I feel bad about this but I'm going to make height width and mines globals to connect 
 # between the button clicked and play functions I should do this with classes but I'm too lazy
 # to fix that
-=======
-#Globals class for maintaining global variables throughout the program
->>>>>>> a52c0365ae7e8566ff99dc34a8606b4b1b5e1527
 
 
 class Globals ():
@@ -32,6 +28,7 @@ class Globals ():
     game_started = False
     stop = True
     zoom = 20
+
     
 
     
@@ -53,6 +50,9 @@ class GameBoard(Frame):
 
         self.gamewon = None
 
+        png = Image.open('flag.png')    #creating and storing flag and bomb images
+        resize = png.resize((30,30), Image.Resampling.LANCZOS)
+        self.flag = ImageTk.PhotoImage(resize)
         
         
 
@@ -123,6 +123,14 @@ class GameBoard(Frame):
         self.height = height
         self.width = width
         self.mines = mines
+
+
+        png = Image.open('flag.png')    #creating and storing flag and bomb images
+        resize = png.resize((30,30), Image.Resampling.LANCZOS)
+        flag = ImageTk.PhotoImage(resize)
+        
+
+
         #create a list of mine values
 
         self.mine_grid = [[0]*width for i in [0]*height]
@@ -169,32 +177,28 @@ class GameBoard(Frame):
                         if self.mine_grid[i+1][j+1] == 1:
                             mine_neighbors += 1
                     
-                    self.tiles[i, j] = Tile(self.game, i, j, False, mine_neighbors) #create a new tile with the new values
+                    self.tiles[i, j] = Tile(self.game, i, j, False, mine_neighbors)
 
 
     def loss(self):
         self.gamewon = False
         Globals.stop = True
         Globals.game_started = False
-        Globals.stop = True                  #set globals 
+        Globals.stop = True
         for tile in self.tiles:
             if self.tiles[tile].mine:
                 self.tiles[tile].config(relief = SUNKEN, bg='black')
 
-                #reveal all mines
-
     def win(self):
         Globals.stop = True
-        self.gamewon = True                #set globals
+        self.gamewon = True
         for tile in self.tiles:
             if self.tiles[tile].mine:
                 self.tiles[tile].config(text="F",bg="red")
 
-                #reveal all flags
-
                 
         
-#create tile class for each tile on the board
+
 
 class Tile(Label):
     def __init__(self,master,i, j, mine, mine_neighbors=NONE):
@@ -214,10 +218,6 @@ class Tile(Label):
         self.bind("<Button-2>",self.flag)
         self.bind("<Enter>",lambda event:self.flag_coordinates(event,self.row,self.column))
         self.bind("<space>",lambda event:self.flag_place(event))
-
-        flag = Image.open('flag.png')    #creating and storing flag and bomb images
-        flag = flag.resize((30,30), Image.Resampling.LANCZOS)
-        self.flag = ImageTk.PhotoImage(flag)
         
 
 
@@ -233,8 +233,6 @@ class Tile(Label):
                         self.configure(relief=SUNKEN,bg="light gray",text=" ")
                         self.revealed = True
                         self.reveal_neighbors(self.row,self.column)
-                        if Globals.game_started == False:
-                            Globals.game_started = True
                         
                         
                     #counting nearby mines if Tile in creation is not a mine
@@ -268,8 +266,6 @@ class Tile(Label):
                     
                     if self.flagged_neighbors == self.mine_neighbors and self.revealed == True:
                         self.reveal_neighbors(self.row,self.column)
-                        if Globals.game_started == False:
-                            Globals.game_started = True
 
                     #reveal value of tiles
 
@@ -278,7 +274,6 @@ class Tile(Label):
                             self.configure(relief=SUNKEN, bg="light gray",text=self.mine_neighbors,fg="blue")
                             self.revealed = True
                             self.checkWin()
-                            
                         if self.mine_neighbors == 2:
                             self.configure(relief=SUNKEN,bg="light gray",text=self.mine_neighbors,fg="green")
                             self.revealed = True
@@ -314,22 +309,22 @@ class Tile(Label):
                             Globals.game_started = True
                             self.startClock()
 
-    def startClock(self):               #start game clock when first tile is clicked
+    def startClock(self):
         if Globals.stop != True:
             Globals.time += 1
             Globals.control_frame.grid_slaves(column = 5,row = 0)[0].configure(text = "{}".format(Globals.time).zfill(3))
             Globals.control_frame.after(1000,self.startClock)
 
 
-    def flag_coordinates(self,event,i,j):       #cursor coordinates of tile
+    def flag_coordinates(self,event,i,j):
         Globals.y = i
         Globals.x = j
 
 
-    def flag_place(self,event):             #place flag on tile
+    def flag_place(self,event):
         if Globals.board.gamewon == None:
             if Globals.board.tiles[Globals.y,Globals.x].flagged == False and Globals.board.tiles[Globals.y,Globals.x].revealed == False:
-                Globals.board.tiles[Globals.y,Globals.x].configure(image = self.flag,padx = 12, pady = 12)
+                Globals.board.tiles[Globals.y,Globals.x].configure(image = Globals.board.flag,padx = 12, pady = 12)
                 Globals.board.tiles[Globals.y,Globals.x].flagged = True
                 Globals.mine_count -= 1
                 Globals.control_frame.grid_slaves(column = 1,row = 0)[0].configure(text = "{}".format(Globals.mine_count))
@@ -340,7 +335,7 @@ class Tile(Label):
                 Globals.control_frame.grid_slaves(column = 1,row = 0)[0].configure(text = "{}".format(Globals.mine_count))
 
 
-    def flag(self,event):               #place flag on tile
+    def flag(self,event):
         if Globals.board.gamewon == None:
             if self.flagged == False and self.revealed == False:
                 self.configure(bg="red", text="F")
@@ -442,6 +437,9 @@ def custom_clicked():
     Globals.width = int(custom[1])
     Globals.mines = int(custom[2])
     
+    # Globals.height = 30
+    # Globals.width = 30
+    # Globals.mines = 150
     Globals.board.gamewon = None
     Globals.board.update_board(Globals.game_frame,Globals.height,Globals.width,Globals.mines)
 
