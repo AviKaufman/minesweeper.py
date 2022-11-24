@@ -28,6 +28,7 @@ class Globals ():
     game_started = False
     stop = True
     zoom = 20
+    tile_pad = 12
 
     
 
@@ -40,7 +41,7 @@ class GameBoard(Frame):
     def __init__(self, master, height, width, mines):
         Frame.__init__(self,master)
         self.master = master
-        master.configure(bg="gray")
+        master.configure(bg="white")
         master.pack(expand = True,fill = BOTH)
         self.game = Frame(master, bg="white",width = 800, height = 630)
         self.game.pack(expand=True)
@@ -51,10 +52,32 @@ class GameBoard(Frame):
         self.gamewon = None
 
         png = Image.open('flag.png')    #creating and storing flag and bomb images
-        resize = png.resize((30,30), Image.Resampling.LANCZOS)
+        m_png = Image.open('mine.png')
+
+        if Globals.zoom == 10:
+            resize = png.resize((14,14), Image.Resampling.LANCZOS)
+            m_resize = m_png.resize((14,14), Image.Resampling.LANCZOS)
+            Globals.tile_pad = 6
+        elif Globals.zoom == 15:
+            resize = png.resize((22,22), Image.Resampling.LANCZOS)
+            m_resize = m_png.resize((22,22), Image.Resampling.LANCZOS)
+            Globals.tile_pad = 9
+        elif Globals.zoom == 20:
+            resize = png.resize((30,30), Image.Resampling.LANCZOS)
+            m_resize = m_png.resize((30,30), Image.Resampling.LANCZOS)
+            Globals.tile_pad = 12
+        elif Globals.zoom == 25:
+            resize = png.resize((38,38), Image.Resampling.LANCZOS)
+            m_resize = m_png.resize((38,38), Image.Resampling.LANCZOS)
+            Globals.tile_pad = 14
+        else:
+            resize = png.resize((46,46), Image.Resampling.LANCZOS)
+            m_resize = m_png.resize((46,46), Image.Resampling.LANCZOS)
+            Globals.tile_pad = 17
+        
         self.flag = ImageTk.PhotoImage(resize)
-        
-        
+        self.mine = ImageTk.PhotoImage(m_resize)
+
 
         #create a list of mine values
 
@@ -116,9 +139,9 @@ class GameBoard(Frame):
         self.game.destroy()
         Frame.__init__(self,master)
         self.master = master
-        master.configure(bg="gray")
+        master.configure(bg="white")
         master.pack(expand = True,fill = BOTH)
-        self.game = Frame(master, bg="white",width = 800, height = 630)
+        self.game = Frame(master,width = 800, height = 630,highlightthickness=12, highlightcolor="#C8C8C8")
         self.game.pack(expand=True)
         self.height = height
         self.width = width
@@ -126,10 +149,31 @@ class GameBoard(Frame):
 
 
         png = Image.open('flag.png')    #creating and storing flag and bomb images
-        resize = png.resize((30,30), Image.Resampling.LANCZOS)
-        flag = ImageTk.PhotoImage(resize)
-        
+        m_png = Image.open('mine.png')
 
+        if Globals.zoom == 10:
+            resize = png.resize((14,14), Image.Resampling.LANCZOS)
+            m_resize = m_png.resize((14,14), Image.Resampling.LANCZOS)
+            Globals.tile_pad = 6
+        elif Globals.zoom == 15:
+            resize = png.resize((22,22), Image.Resampling.LANCZOS)
+            m_resize = m_png.resize((22,22), Image.Resampling.LANCZOS)
+            Globals.tile_pad = 9
+        elif Globals.zoom == 20:
+            resize = png.resize((30,30), Image.Resampling.LANCZOS)
+            m_resize = m_png.resize((30,30), Image.Resampling.LANCZOS)
+            Globals.tile_pad = 12
+        elif Globals.zoom == 25:
+            resize = png.resize((38,38), Image.Resampling.LANCZOS)
+            m_resize = m_png.resize((38,38), Image.Resampling.LANCZOS)
+            Globals.tile_pad = 14
+        else:
+            resize = png.resize((46,46), Image.Resampling.LANCZOS)
+            m_resize = m_png.resize((46,46), Image.Resampling.LANCZOS)
+            Globals.tile_pad = 17
+        
+        self.flag = ImageTk.PhotoImage(resize)
+        self.mine = ImageTk.PhotoImage(m_resize)
 
         #create a list of mine values
 
@@ -187,14 +231,14 @@ class GameBoard(Frame):
         Globals.stop = True
         for tile in self.tiles:
             if self.tiles[tile].mine:
-                self.tiles[tile].config(relief = SUNKEN, bg='black')
+                self.tiles[tile].config(relief = SUNKEN,image = Globals.board.mine,padx = Globals.tile_pad, pady = Globals.tile_pad)
 
     def win(self):
         Globals.stop = True
         self.gamewon = True
         for tile in self.tiles:
             if self.tiles[tile].mine:
-                self.tiles[tile].config(text="F",bg="red")
+                self.tiles[tile].config(image = Globals.board.flag,padx = 12, pady = 12, bg = "red")
 
                 
         
@@ -205,6 +249,7 @@ class Tile(Label):
         Label.__init__(self,master,width=2, height = 1, relief=RAISED, justify=CENTER)
         Globals.game_frame.option_add("*Font", "Helvetica {} bold".format(Globals.zoom))
         self.grid(row=i,column=j)
+        self.configure(bg = "#C8C8C8")
         self.row = i
         self.column = j
         self.mine = mine
@@ -324,26 +369,26 @@ class Tile(Label):
     def flag_place(self,event):
         if Globals.board.gamewon == None:
             if Globals.board.tiles[Globals.y,Globals.x].flagged == False and Globals.board.tiles[Globals.y,Globals.x].revealed == False:
-                Globals.board.tiles[Globals.y,Globals.x].configure(image = Globals.board.flag,padx = 12, pady = 12)
+                Globals.board.tiles[Globals.y,Globals.x].configure(image = Globals.board.flag,padx = Globals.tile_pad, pady = Globals.tile_pad)
                 Globals.board.tiles[Globals.y,Globals.x].flagged = True
                 Globals.mine_count -= 1
-                Globals.control_frame.grid_slaves(column = 1,row = 0)[0].configure(text = "{}".format(Globals.mine_count))
+                Globals.control_frame.grid_slaves(column = 1,row = 0)[0].configure(text = "{}".format(Globals.mine_count).zfill(2))
             elif Globals.board.tiles[Globals.y,Globals.x].revealed == False:
                 Globals.board.tiles[Globals.y,Globals.x].configure(image = "",padx = 1,pady = 1)
                 Globals.board.tiles[Globals.y,Globals.x].flagged = False
                 Globals.mine_count += 1
-                Globals.control_frame.grid_slaves(column = 1,row = 0)[0].configure(text = "{}".format(Globals.mine_count))
+                Globals.control_frame.grid_slaves(column = 1,row = 0)[0].configure(text = "{}".format(Globals.mine_count).zfill(2))
 
 
     def flag(self,event):
         if Globals.board.gamewon == None:
             if self.flagged == False and self.revealed == False:
-                self.configure(bg="red", text="F")
+                self.configure(image = Globals.board.flag,padx = 12, pady = 12)
                 self.flagged = True
                 Globals.mine_count -= 1
                 Globals.control_frame.grid_slaves(column = 1,row = 0)[0].configure(text = "{}".format(Globals.mine_count))
             elif self.revealed == False:
-                self.configure(bg="white",text="")
+                self.configure(image = "",padx = 1,pady = 1)
                 self.flagged = False
                 Globals.mine_count += 1
                 Globals.control_frame.grid_slaves(column = 1,row = 0)[0].configure(text = "{}".format(Globals.mine_count))
@@ -472,38 +517,46 @@ def play():
     root = Tk()
     root.title("Minesweeper")
     root.geometry("1000x800")
-    root.configure(background="blue")
+    root.configure(background="white")
+    
 
-    Globals.difficulty_frame = Frame(root, bg="gray", pady=20)
-    Globals.difficulty_frame.pack(fill=X)
+    png = Image.open('smile.png')    #creating and storing flag and bomb images
+    resize = png.resize((30,30), Image.Resampling.LANCZOS)
+    smile = ImageTk.PhotoImage(resize)
 
-    Globals.control_frame = Frame(root, bg="gray", pady=20)
-    Globals.control_frame.pack(fill=X)
+    Globals.difficulty_frame = Frame(root, bg="white", pady=20)
+    Globals.difficulty_frame.pack(fill=X,expand = False)
 
-    gray_frame = Frame(root, bg="gray")
-    gray_frame.pack(expand=True, fill=BOTH)
+    wrapper_frame = Frame(root, bg="#C8C8C8", padx= 10, pady = 10, highlightcolor = "gray", highlightthickness=2)
+    wrapper_frame.pack(expand= False, fill=Y)
 
-    Globals.game_frame = Frame(gray_frame, bg="white", width=950, height=600)
+    Globals.control_frame = Frame(wrapper_frame, bg="#C8C8C8", pady = 20, padx = 400, highlightthickness=2)
+    Globals.control_frame.pack(expand=True)
+
+    white_frame = Frame(root, bg="white")
+    white_frame.pack(expand=True, fill=BOTH)
+
+    Globals.game_frame = Frame(white_frame, bg="white", width=950, height=600)
     Globals.game_frame.pack(expand=True)
 
     # make 4 difficulty buttons
 
     Globals.difficulty_frame.columnconfigure(0, weight=1)
 
-    beginner = Button(Globals.difficulty_frame, text="beginner", font= "Helvetica 10 bold", command = beginner_clicked).grid(row=0, column=1)
+    beginner = Button(Globals.difficulty_frame, text="beginner", font= "Helvetica 13 bold", fg = "blue", command = beginner_clicked).grid(row=0, column=1)
 
     Globals.difficulty_frame.columnconfigure(2, weight=1)
 
     intermediate = Button(
-        Globals.difficulty_frame, text="intermediate", font= "Helvetica 10 bold", command=intermediate_clicked).grid(row=0, column=3)
+        Globals.difficulty_frame, text="intermediate", font= "Helvetica 13 bold", fg = "blue", command=intermediate_clicked).grid(row=0, column=3)
 
     Globals.difficulty_frame.columnconfigure(4, weight=1)
 
-    expert = Button(Globals.difficulty_frame, text="expert", font= "Helvetica 10 bold",  command=expert_clicked).grid(row=0, column=5)
+    expert = Button(Globals.difficulty_frame, text="expert", font= "Helvetica 13 bold",  fg = "blue",  command=expert_clicked).grid(row=0, column=5)
 
     Globals.difficulty_frame.columnconfigure(6, weight=1)
 
-    custom = Button(Globals.difficulty_frame, text="custom",font= "Helvetica 10 bold", command=custom_clicked).grid(row=0, column=7)
+    custom = Button(Globals.difficulty_frame, text="custom",font= "Helvetica 13 bold",  fg = "blue", command=custom_clicked).grid(row=0, column=7)
 
     Globals.difficulty_frame.columnconfigure(8, weight=3)
 
@@ -518,17 +571,18 @@ def play():
 
     Globals.control_frame.columnconfigure(0, weight=1)
 
-    mine_num = Label(Globals.control_frame, text="099", font= "Helvetica 15 bold").grid(column=1, row=0)
+    mine_num = Label(Globals.control_frame, text="099", font= "Helvetica 20 bold", bg = "black", fg = "red").grid(column=1, row=0)
 
     Globals.control_frame.columnconfigure(2, weight=4)
 
-    restart = Button(Globals.control_frame, text="Restart", font= "Helvetica 10 bold", command=restart_clicked).grid(column=3, row=0)
+    restart = Button(Globals.control_frame, image = smile, bg = "#C8C8C8", command=restart_clicked).grid(column=3, row=0)
 
     Globals.control_frame.columnconfigure(4, weight=4)
 
-    timer = Label(Globals.control_frame, text="000", font= "Helvetica 15 bold").grid(column=5, row=0)
+    timer = Label(Globals.control_frame, text="000", font= "Helvetica 20 bold", bg = "black", fg = "red").grid(column=5, row=0)
 
     Globals.control_frame.columnconfigure(6, weight=1)
+    
 
     Globals.board = GameBoard(Globals.game_frame,Globals.height,Globals.width,Globals.mines)
     Globals.board.update_board(Globals.game_frame,Globals.height,Globals.width,Globals.mines)
