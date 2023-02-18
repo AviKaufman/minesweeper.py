@@ -459,7 +459,6 @@ def intermediate_clicked():
     Globals.board.update_board(Globals.game_frame,Globals.height,Globals.width,Globals.mines)
     
     
-    
 
     
     
